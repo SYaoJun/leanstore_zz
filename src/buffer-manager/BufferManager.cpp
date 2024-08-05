@@ -42,7 +42,7 @@ BufferManager::BufferManager(leanstore::LeanStore* store) : mStore(store) {
   const uint64_t totalMemSize = bfSize * (mNumBfs + mNumSaftyBfs);
 
   // Init buffer pool with zero-initialized buffer frames. Use mmap with flags
-  // MAP_PRIVATE and MAP_ANONYMOUS, no underlying file desciptor to allocate
+  // MAP_PRIVATE and MAP_ANONYMOUS, no underlying file descriptor to allocate
   // totalmemSize buffer pool with zero-initialized contents.
   void* underlyingBuf =
       mmap(NULL, totalMemSize, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
@@ -128,9 +128,9 @@ Result<void> BufferManager::CheckpointAllBufferFrames() {
   Log::Info("CheckpointAllBufferFrames, mNumBfs={}", mNumBfs);
   SCOPED_DEFER({
     auto stoppedAt = std::chrono::steady_clock::now();
-    auto elaspedNs =
+    auto elapsedNs =
         std::chrono::duration_cast<std::chrono::nanoseconds>(stoppedAt - startAt).count();
-    Log::Info("CheckpointAllBufferFrames finished, timeElasped={:.6f}s", elaspedNs / 1000000000.0);
+    Log::Info("CheckpointAllBufferFrames finished, timeElapsed={:.6f}s", elapsedNs / 1000000000.0);
   });
 
   LS_DEBUG_EXECUTE(mStore, "skip_CheckpointAllBufferFrames", {
@@ -306,7 +306,7 @@ BufferFrame* BufferManager::ResolveSwipMayJump(HybridGuard& nodeGuard, Swip& swi
       WorkerCounters::MyCounters().dt_page_reads[bf.mPage.mBTreeId]++;
     }
 
-    // 4. Intialize the buffer frame header
+    // 4. Initialize the buffer frame header
     LS_DCHECK(!bf.mHeader.mIsBeingWrittenBack);
     bf.mHeader.mFlushedGsn = bf.mPage.mGSN;
     bf.mHeader.mState = State::kLoaded;
@@ -350,7 +350,7 @@ BufferFrame* BufferManager::ResolveSwipMayJump(HybridGuard& nodeGuard, Swip& swi
     ioFrame.mNumReaders++; // incremented while holding partition lock
     inflightIOGuard->unlock();
 
-    // wait untile the reading is finished
+    // wait until the reading is finished
     JumpScoped<std::unique_lock<std::mutex>> ioFrameGuard(ioFrame.mMutex);
     ioFrameGuard->unlock(); // no need to hold the mutex anymore
     if (ioFrame.mNumReaders.fetch_add(-1) == 1) {
