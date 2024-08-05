@@ -1,0 +1,1 @@
+gcovr -v -r /home/ubuntu/leanstore/build/debug/src/CMakeFiles/leanstore.dir/buffer-manager --html-details coverage/coverage.html --exclude 'build/*' --exclude 'tests/*' --exclude 'benchmarks/*'
