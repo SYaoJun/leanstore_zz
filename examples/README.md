@@ -6,7 +6,7 @@
 cd $LEANSTORE_HOME
 cmake --preset=debug
 cmake --build build/debug -j `nproc`
-cmake --install build/debug
+
 ```
 
 The leanstore library should be found in `$LEANSTORE/dist/debug` after the above commands.
@@ -14,8 +14,9 @@ The leanstore library should be found in `$LEANSTORE/dist/debug` after the above
 ## 2. Build the example
 
 ```sh
-cd $LEANSTORE_HOME/examples
-cmake -B build -S . -DLEANSTORE_INCLUDE_DIR=$LEANSTORE_HOME/dist/debug/include -DLEANSTORE_LIBRARY_DIR=$LEANSTORE_HOME/dist/debug/lib
+cmake --install build/debug_tsan
+cd examples
+cmake -B build -S . -DLEANSTORE_INCLUDE_DIR=../dist/debug_tsan/include -DLEANSTORE_LIBRARY_DIR=../dist/debug_tsan/lib
 cmake --build build -j `nproc`
 ./build/BasicKvExample
 ```

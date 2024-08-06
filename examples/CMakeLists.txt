@@ -21,5 +21,5 @@ link_directories(${LEANSTORE_LIBRARY_DIR})
 
 # Rules to build BasicKvExample
 add_executable(BasicKvExample BasicKvExample.cpp)
-target_link_libraries(BasicKvExample leanstore)
+target_link_libraries(BasicKvExample leanstore unwind)
 target_include_directories(BasicKvExample PUBLIC ${LEANSTORE_INCLUDE_DIR})
