@@ -87,7 +87,7 @@ LeanStore::LeanStore(StoreOption option)
       Log::Info("Not all pages up-to-date, recover from disk");
       mBufferManager->RecoverFromDisk();
     } else {
-      Log::Info("All pages up-to-date, skip resovering");
+      Log::Info("All pages up-to-date, skip recovering");
       // TODO: truncate wal files
     }
   }

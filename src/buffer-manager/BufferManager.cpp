@@ -32,15 +32,16 @@
 #include <sys/resource.h>
 #include <sys/time.h>
 #include <unistd.h>
-
+#include <iostream>
 namespace leanstore::storage {
 
 BufferManager::BufferManager(leanstore::LeanStore* store) : mStore(store) {
   auto bpSize = mStore->mStoreOption.mBufferPoolSize;
   auto bfSize = mStore->mStoreOption.mBufferFrameSize;
+  // 1G/512+4K = 233016
   mNumBfs = bpSize / bfSize;
   const uint64_t totalMemSize = bfSize * (mNumBfs + mNumSaftyBfs);
-
+  Log::Info("num of buffer frame = {}", mNumBfs);
   // Init buffer pool with zero-initialized buffer frames. Use mmap with flags
   // MAP_PRIVATE and MAP_ANONYMOUS, no underlying file desciptor to allocate
   // totalmemSize buffer pool with zero-initialized contents.
@@ -57,10 +58,11 @@ BufferManager::BufferManager(leanstore::LeanStore* store) : mStore(store) {
 
   // Initialize mPartitions
   mNumPartitions = mStore->mStoreOption.mNumPartitions;
+  std::cout<<"bf partition = "<<mNumPartitions<<std::endl;
   mPartitionsMask = mNumPartitions - 1;
   const uint64_t freeBfsLimitPerPartition =
       std::ceil((mStore->mStoreOption.mFreePct * 1.0 * mNumBfs / 100.0) / mNumPartitions);
-  for (uint64_t i = 0; i < mNumPartitions; i++) {
+  for (uint64_t i = 0; i < mNumPartitions; i++) { // 2个, 1166
     mPartitions.push_back(std::make_unique<Partition>(i, mNumPartitions, freeBfsLimitPerPartition));
   }
   Log::Info("Init buffer manager, IO partitions={}, freeBfsLimitPerPartition={}", mNumPartitions,
@@ -70,6 +72,7 @@ BufferManager::BufferManager(leanstore::LeanStore* store) : mStore(store) {
   utils::Parallelize::ParallelRange(mNumBfs, [&](uint64_t begin, uint64_t end) {
     uint64_t partitionId = 0;
     for (uint64_t i = begin; i < end; i++) {
+      // 把这些buffer frame均匀地放到每个分区 第一个线程将116508平分到两个分区，第二个线程又将116508分到两个分区，所以mbfList.size才变成了116503,一直以为是没有清零导致的，如果我快速地消耗buffer frame，那么就可能触发页面换出的机制
       auto& partition = GetPartition(partitionId);
       auto* bfAddr = &mBufferPool[i * mStore->mStoreOption.mBufferFrameSize];
       partition.mFreeBfList.PushFront(*new (bfAddr) BufferFrame());

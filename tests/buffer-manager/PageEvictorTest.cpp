@@ -6,7 +6,9 @@
 #include "leanstore/utils/Log.hpp"
 #include "leanstore/utils/Misc.hpp"
 #include "leanstore/utils/RandomGenerator.hpp"
-
+#include "leanstore/buffer-manager/PageEvictor.hpp"
+#include "leanstore/buffer-manager/BufferManager.hpp"
+#include <iostream>
 #include <gtest/gtest.h>
 
 #include <cstddef>
@@ -17,63 +19,44 @@
 #include <fcntl.h>
 
 namespace leanstore::storage::test {
+class PageEvictorTest : public ::testing::Test {
+    protected:
+  std::unique_ptr<LeanStore> mStore;
 
-class AsyncWriteBufferTest : public ::testing::Test {
-protected:
-  std::string mTestDir = "/tmp/leanstore/AsyncWriteBufferTest";
+  PageEvictorTest() = default;
 
-  struct BufferFrameHolder {
-    utils::AlignedBuffer<512> mBuffer;
-    BufferFrame* mBf;
-
-    BufferFrameHolder(size_t pageSize, PID pageId)
-        : mBuffer(512 + pageSize),
-          mBf(new(mBuffer.Get()) BufferFrame()) {
-      mBf->mHeader.mPageId = pageId;
-    }
-  };
-
-  void SetUp() override {
-    // remove the test directory if it exists
-    TearDown();
-
-    // create the test directory
-    auto ret = system(std::format("mkdir -p {}", mTestDir).c_str());
-    EXPECT_EQ(ret, 0) << std::format(
-        "Failed to create test directory, testDir={}, errno={}, error={}", mTestDir, errno,
-        strerror(errno));
-  }
-
-  void TearDown() override {
-  }
-
-  std::string getRandTestFile() {
-    return std::format("{}/{}", mTestDir, utils::RandomGenerator::RandAlphString(8));
-  }
-
-  int openFile(const std::string& fileName) {
-    // open the file
-    auto flag = O_TRUNC | O_CREAT | O_RDWR | O_DIRECT;
-    int fd = open(fileName.c_str(), flag, 0666);
-    EXPECT_NE(fd, -1) << std::format("Failed to open file, fileName={}, errno={}, error={}",
-                                     fileName, errno, strerror(errno));
-
-    return fd;
-  }
-
-  void closeFile(int fd) {
-    ASSERT_EQ(close(fd), 0) << std::format("Failed to close file, fd={}, errno={}, error={}", fd,
-                                           errno, strerror(errno));
-  }
-
-  void removeFile(const std::string& fileName) {
-    ASSERT_EQ(remove(fileName.c_str()), 0) << std::format(
-        "Failed to remove file, fileName={}, errno={}, error={}", fileName, errno, strerror(errno));
+  ~PageEvictorTest() = default;
+    void SetUp() override {
+    // Create a leanstore instance for the test case
+    auto* curTest = ::testing::UnitTest::GetInstance()->current_test_info();
+    auto curTestName = std::string(curTest->test_case_name()) + "_" + std::string(curTest->name());
+    const int pageSize = 4096;
+    const int pageHeaderSize = 512;
+    auto res = LeanStore::Open(StoreOption{
+        .mCreateFromScratch = true,
+        .mStoreDir = "/tmp/" + curTestName,
+        .mLogLevel = LogLevel::kDebug,
+        .mWorkerThreads = 2,
+        .mNumPartitions = 2,
+        .mBufferPoolSize = 30 * (pageHeaderSize + pageSize),
+        .mFreePct = 80,
+        .mEnableBulkInsert = false,
+        .mEnableEagerGc = true,
+        
+    });
+    ASSERT_TRUE(res);
+    mStore = std::move(res.value());
+    
   }
 };
 
-TEST_F(PageEvictorTest, pageBasic) {
-  PageEvictor pageEvictor;
+TEST_F(PageEvictorTest, pageEvictBasic) {
+  EXPECT_EQ(mStore->mBufferManager->mPageEvictors.size(), 1);
+  auto& pageEvictor = mStore->mBufferManager->mPageEvictors[0];
+  EXPECT_TRUE(pageEvictor->IsStarted());
+  auto& targetPartition = pageEvictor->mPartitions[0];
+  EXPECT_EQ(pageEvictor->mPartitions.size(), 2);
+  pageEvictor->PickBufferFramesToCool(*pageEvictor->mPartitions[0]);
 }
 
 } // namespace leanstore::storage::test

@@ -87,6 +87,9 @@ public:
         mAsyncWriteBuffer(store->mPageFd, store->mStoreOption.mPageSize,
                           mStore->mStoreOption.mBufferWriteBatchSize),
         mFreeBfList() {
+    mFreeBfList.Reset();
+    std::cout<<"bf size = "<<mFreeBfList.Size() <<std::endl;
+    // std::cout<<"bf limit = "<<mFre<<std::endl;
     mCoolCandidateBfs.reserve(mStore->mStoreOption.mBufferFrameRecycleBatchSize);
     mEvictCandidateBfs.reserve(mStore->mStoreOption.mBufferFrameRecycleBatchSize);
   }

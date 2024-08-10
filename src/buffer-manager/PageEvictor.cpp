@@ -6,7 +6,7 @@
 #include "leanstore/profiling/counters/PPCounters.hpp"
 #include "leanstore/utils/Defer.hpp"
 #include "leanstore/utils/Log.hpp"
-
+#include <iostream>
 #include <mutex>
 
 namespace leanstore::storage {

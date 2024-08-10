@@ -6,6 +6,7 @@
 #include <functional>
 #include <thread>
 #include <vector>
+#include <iostream>
 
 namespace leanstore::utils {
 
@@ -43,8 +44,9 @@ void Parallelize::ParallelRange(
   auto* store = tlsStore;
   std::vector<std::thread> threads;
   uint64_t numThread = std::thread::hardware_concurrency();
-  uint64_t jobsPerThread = numJobs / numThread;
-  uint64_t numRemaining = numJobs % numThread;
+  std::cout<<"numThreads = "<<numThread<<", jobs = "<<numJobs<<std::endl;
+  uint64_t jobsPerThread = numJobs / numThread; // 每个线程需要执行的任务
+  uint64_t numRemaining = numJobs % numThread;  // 当不能整除时 剩余的任务数量
   uint64_t numProceedTasks = 0;
   if (jobsPerThread < numThread) {
     numThread = numRemaining;
@@ -53,14 +55,17 @@ void Parallelize::ParallelRange(
   // To balance the workload among all threads:
   // - the first numRemaining threads process jobsPerThread+1 tasks
   // - other threads process jobsPerThread tasks
+  // 最开始的线程，每个多处理一个任务
   for (uint64_t i = 0; i < numThread; i++) {
     uint64_t begin = numProceedTasks;
     uint64_t end = begin + jobsPerThread;
+    std::cout<<"begin = "<<begin<<" end = "<<end<<std::endl;
     if (numRemaining > 0) {
       end++;
       numRemaining--;
     }
     numProceedTasks = end;
+    // 这里创建了两个线程去执行任务。
     threads.emplace_back(
         [&](uint64_t begin, uint64_t end) {
           tlsStore = store;

@@ -10,6 +10,7 @@ project(leanstore-examples
 # Set gcc standard to c++23
 set(CMAKE_CXX_STANDARD 23)
 
+set(CMAKE_BUILD_TYPE Debug)
 # Set the leanstore include directory
 option(LEANSTORE_INCLUDE_DIR "Path to the leanstore include directory" "")
 message(STATUS "LEANSTORE_INCLUDE_DIR: ${LEANSTORE_INCLUDE_DIR}")

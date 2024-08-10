@@ -1,0 +1,1 @@
+gcovr -v -r . --html-details cov/coverage.html --exclude 'build/*' --exclude 'tests/*' --exclude 'benchmarks/*'

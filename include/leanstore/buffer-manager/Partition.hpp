@@ -8,6 +8,7 @@
 #include <atomic>
 #include <mutex>
 #include <vector>
+#include <iostream>
 
 namespace leanstore::storage {
 
@@ -110,6 +111,7 @@ public:
         mFreeBfsLimit(freeBfsLimit),
         mNextPageId(firstPageId),
         mPageIdDistance(pageIdDistance) {
+          std::cout<<"limit = "<<mFreeBfsLimit<<std::endl;
   }
 
   //! Whether the partition needs more free buffer frames.
@@ -119,6 +121,7 @@ public:
 
   //! Allocates a new page id.
   PID NextPageId() {
+    std::cout<<"use a page"<<std::endl;
     std::unique_lock<std::mutex> guard(mReclaimedPageIdsMutex);
     if (mReclaimedPageIds.size()) {
       const uint64_t pageId = mReclaimedPageIds.back();
@@ -146,6 +149,13 @@ public:
   uint64_t NumReclaimedPages() {
     std::unique_lock<std::mutex> guard(mReclaimedPageIdsMutex);
     return mReclaimedPageIds.size();
+  }
+  uint64_t GetFreeLimit(){
+    return mFreeBfsLimit;
+  }
+  uint64_t GetBufferFrameListSize(){
+      return mFreeBfList.mSize.load();
+
   }
 };
 

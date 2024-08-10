@@ -68,7 +68,7 @@ public:
   //! Whether to perform crc check for buffer frames.
   bool mEnableBufferCrcCheck = false;
 
-  //! BufferFrame recycle batch size. Everytime a batch of buffer frames is
+  //! BufferFrame recycle batch size. Every time a batch of buffer frames is
   //! randomly picked and verified by page evictors, some of them are COOLed,
   //! some of them are EVICted.
   uint64_t mBufferFrameRecycleBatchSize = 64;

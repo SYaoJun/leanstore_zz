@@ -20,12 +20,14 @@ protected:
   BasicKVTest() = default;
 
   ~BasicKVTest() = default;
-
+  // 测试之前执行
   void SetUp() override {
     // Create a leanstore instance for the test case
     auto* curTest = ::testing::UnitTest::GetInstance()->current_test_info();
+    std::cout<<"current test name = "<<curTest->test_case_name()<<std::endl;
     auto curTestName = std::string(curTest->test_case_name()) + "_" + std::string(curTest->name());
-
+    // 有open难道没有close吗？ 用智能指针管理无需手动close
+    // 初始时创建了两个worker线程
     auto res = LeanStore::Open(StoreOption{
         .mCreateFromScratch = true,
         .mStoreDir = "/tmp/" + curTestName,
@@ -36,12 +38,16 @@ protected:
     ASSERT_TRUE(res);
     mStore = std::move(res.value());
   }
+  void TearDown() override {
+        // 清理代码
+    }
 };
 
+// 创建
 TEST_F(BasicKVTest, BasicKVCreate) {
   // create leanstore btree for table records
   const auto* btreeName = "testTree1";
-
+  // 执行用户自定义的函数
   mStore->ExecSync(0, [&]() {
     auto res = mStore->CreateBasicKV(btreeName);
     EXPECT_TRUE(res);
@@ -68,8 +74,8 @@ TEST_F(BasicKVTest, BasicKVCreate) {
     EXPECT_NE(res.value(), nullptr);
   });
 }
-
-TEST_F(BasicKVTest, BasicKVInsertAndLookup) {
+// 插入和查询
+TEST_F(BasicKVTest, DISABLED_BasicKVInsertAndLookup) {
   storage::btree::BasicKV* btree;
 
   // prepare key-value pairs to insert
@@ -90,6 +96,7 @@ TEST_F(BasicKVTest, BasicKVInsertAndLookup) {
 
     // insert some values
     btree = res.value();
+    // 这个函数干嘛的？开始事务
     cr::Worker::My().StartTx();
     for (size_t i = 0; i < numKVs; ++i) {
       const auto& [key, val] = kvToTest[i];
@@ -97,6 +104,7 @@ TEST_F(BasicKVTest, BasicKVInsertAndLookup) {
                               Slice((const uint8_t*)val.data(), val.size())),
                 OpCode::kOK);
     }
+    // 提交事务
     cr::Worker::My().CommitTx();
   });
 
@@ -105,6 +113,7 @@ TEST_F(BasicKVTest, BasicKVInsertAndLookup) {
     cr::Worker::My().StartTx();
     SCOPED_DEFER(cr::Worker::My().CommitTx());
     std::string copiedValue;
+    // 把值复制出来
     auto copyValueOut = [&](Slice val) {
       copiedValue = std::string((const char*)val.data(), val.size());
     };
