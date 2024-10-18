@@ -26,6 +26,10 @@ public:
 
   virtual OpCode Remove(Slice key) override;
 
+  virtual OpCode OptimisticScanAsc(Slice startKey, ScanCallback callback);
+
+  virtual OpCode OptimisticSeekToFirstGreaterEqual(Slice key, PairCallback callback);
+
   virtual OpCode ScanAsc(Slice startKey, ScanCallback callback) override;
 
   virtual OpCode ScanDesc(Slice startKey, ScanCallback callback) override;

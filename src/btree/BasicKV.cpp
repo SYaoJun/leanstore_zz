@@ -11,6 +11,7 @@
 #include "leanstore/utils/Misc.hpp"
 
 #include <format>
+#include <iterator>
 #include <string>
 
 #include <sys/types.h>
@@ -106,6 +107,59 @@ bool BasicKV::IsRangeEmpty(Slice startKey, Slice endKey) {
   }
   UNREACHABLE();
   return false;
+}
+
+OpCode BasicKV::OptimisticScanAsc(Slice startKey, ScanCallback callback) {
+  Slice actualKey;
+  Slice actualVal;
+  auto pairCallback = [&](Slice key, Slice val) {
+    actualKey = key;
+    actualVal = val;
+  };
+  uint count = 0;
+  while (true) {
+    auto found = OptimisticSeekToFirstGreaterEqual(startKey, pairCallback) == OpCode::kOK;
+    if (found) {
+      callback(actualKey, actualVal);
+      std::string newKey = actualKey.ToString();
+      newKey.push_back('\0');
+      Slice newSlice(newKey);
+      startKey = newSlice;
+      count++;
+    } else {
+      break;
+    }
+  }
+  return count == 0 ? OpCode::kNotFound : OpCode::kOK;
+}
+
+OpCode BasicKV::OptimisticSeekToFirstGreaterEqual(Slice key, PairCallback callback) {
+  JUMPMU_TRY() {
+    GuardedBufferFrame<BTreeNode> guardedLeaf;
+    FindLeafCanJump(key, guardedLeaf);
+    bool isEqual = false;
+    int16_t cur = guardedLeaf->LowerBound<false>(key, &isEqual);
+    if (isEqual) {
+      callback(key, guardedLeaf->Value(cur));
+      guardedLeaf.JumpIfModifiedByOthers();
+      JUMPMU_RETURN OpCode::kOK;
+    }
+    if (cur < guardedLeaf->mNumSlots) {
+      auto fullKeySize = guardedLeaf->GetFullKeyLen(cur);
+      auto fullKeyBuf = utils::JumpScopedArray<uint8_t>(fullKeySize);
+      guardedLeaf->CopyFullKey(cur, fullKeyBuf->get());
+      guardedLeaf.JumpIfModifiedByOthers();
+      callback(Slice(fullKeyBuf->get(), fullKeySize), guardedLeaf->Value(cur));
+      guardedLeaf.JumpIfModifiedByOthers();
+      JUMPMU_RETURN OpCode::kOK;
+    }
+
+    JUMPMU_RETURN OpCode::kNotFound;
+  }
+  JUMPMU_CATCH() {
+  }
+  UNREACHABLE();
+  return OpCode::kOther;
 }
 
 OpCode BasicKV::ScanAsc(Slice startKey, ScanCallback callback) {

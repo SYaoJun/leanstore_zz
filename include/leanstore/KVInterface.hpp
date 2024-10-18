@@ -142,6 +142,7 @@ using ValCallback = std::function<void(Slice val)>;
 using MutValCallback = std::function<void(MutableSlice val)>;
 using ScanCallback = std::function<bool(Slice key, Slice val)>;
 using PrefixLookupCallback = std::function<void(Slice key, Slice val)>;
+using PairCallback = std::function<void(Slice key, Slice val)>;
 
 class KVInterface {
 public:

@@ -27,7 +27,7 @@ public:
   //! Construct a ChainedTuple, copy the value to its payload
   ///
   //! NOTE: Payload space should be allocated in advance. This constructor is
-  //! usually called by a placmenet new operator.
+  //! usually called by a placement new operator.
   ChainedTuple(WORKERID workerId, TXID txId, Slice val)
       : Tuple(TupleFormat::kChained, workerId, txId),
         mIsTombstone(false) {
@@ -44,7 +44,7 @@ public:
   //! may share the same space with the input FatTuple, so std::memmove is
   //! used to handle the overlap bytes.
   ///
-  //! NOTE: This constructor is usually called by a placmenet new operator on
+  //! NOTE: This constructor is usually called by a placement new operator on
   //! the address of the FatTuple
   ChainedTuple(FatTuple& oldFatTuple)
       : Tuple(TupleFormat::kChained, oldFatTuple.mWorkerId, oldFatTuple.mTxId,

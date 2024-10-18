@@ -9,9 +9,9 @@ namespace leanstore::storage::btree {
 //! differently when it comes to maintaining versions in the b-tree. For
 //! frequently updated tuples, we store them in a FatTuple
 ///
-//! Prepartion phase: iterate over the chain and check whether all updated
+//! preparation phase: iterate over the chain and check whether all updated
 //! attributes are the same and whether they fit on a page If both conditions
-//! are fullfiled then we can store them in a fat tuple When FatTuple runs out
+//! are fulfilled then we can store them in a fat tuple When FatTuple runs out
 //! of space, we simply crash for now (real solutions approx variable-size pages
 //! or fallback to chained keys)
 ///
@@ -123,7 +123,7 @@ public:
 //! 1. The creator info: mWorkerId, mTxId, mCommandId
 //! 2. The update descriptor: payload
 ///
-//! Data loyout of a FatTupleDelta:
+//! Data layout of a FatTupleDelta:
 //! | mWorkerId | mTxId | mCommandId | UpdateDesc | Delta |
 ///
 //! FatTuple uses precise garbage collection

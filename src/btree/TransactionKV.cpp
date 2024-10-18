@@ -220,21 +220,21 @@ OpCode TransactionKV::Insert(Slice key, Slice val) {
         auto lastWorkerId = chainedTuple->mWorkerId;
         auto lastTxId = chainedTuple->mTxId;
         auto isWriteLocked = chainedTuple->IsWriteLocked();
-        auto isTombsone = chainedTuple->mIsTombstone;
+        auto isTombstone = chainedTuple->mIsTombstone;
         Log::Info("Insert conflicted, current transaction should be aborted, workerId={}, "
                   "startTs={}, key={}, tupleLastWriter={}, tupleLastTxId={}, "
                   "tupleIsWriteLocked={}, tupleIsRemoved={}, tupleVisibleForMe={}",
                   cr::WorkerContext::My().mWorkerId, cr::WorkerContext::My().mActiveTx.mStartTs,
-                  ToString(key), lastWorkerId, lastTxId, isWriteLocked, isTombsone, visibleForMe);
+                  ToString(key), lastWorkerId, lastTxId, isWriteLocked, isTombstone, visibleForMe);
         return OpCode::kAbortTx;
       }
 
       // duplicated on tuple inserted by former committed transactions
-      auto isTombsone = chainedTuple->mIsTombstone;
+      auto isTombstone = chainedTuple->mIsTombstone;
       Log::Info("Insert duplicated, workerId={}, startTs={}, key={}, tupleLastWriter={}, "
                 "tupleLastTxId={}, tupleIsWriteLocked={}, tupleIsRemoved={}, tupleVisibleForMe={}",
                 cr::WorkerContext::My().mWorkerId, cr::WorkerContext::My().mActiveTx.mStartTs,
-                key.ToString(), lastWorkerId, lastTxId, isWriteLocked, isTombsone, visibleForMe);
+                key.ToString(), lastWorkerId, lastTxId, isWriteLocked, isTombstone, visibleForMe);
       return OpCode::kDuplicated;
     }
 
@@ -400,7 +400,7 @@ OpCode TransactionKV::Remove(Slice key) {
     xIter.mGuardedLeaf.WriteWal<WalTxRemove>(key.size() + val.size(), key, val, prevWorkerId,
                                              prevTxId, prevCommandId);
 
-    // 3. remove the tuple, leave a tombsone
+    // 3. remove the tuple, leave a tombstone
     if (mutRawVal.Size() > sizeof(ChainedTuple)) {
       xIter.ShortenWithoutCompaction(sizeof(ChainedTuple));
     }
