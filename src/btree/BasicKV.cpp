@@ -136,7 +136,7 @@ OpCode BasicKV::OptimisticScanAsc(Slice startKey, ScanCallback callback) {
 OpCode BasicKV::OptimisticSeekToFirstGreaterEqual(Slice key, PairCallback callback) {
   JUMPMU_TRY() {
     GuardedBufferFrame<BTreeNode> guardedLeaf;
-    FindLeafCanJump(key, guardedLeaf);
+    FindLeafCanJump(key, guardedLeaf, LatchMode::kOptimisticOrJump);
     bool isEqual = false;
     int16_t cur = guardedLeaf->LowerBound<false>(key, &isEqual);
     if (isEqual) {
