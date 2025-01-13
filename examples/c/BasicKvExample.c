@@ -70,7 +70,7 @@ int main() {
     }
   }
 
-  // assending iteration
+  // ascending iteration
   {
     BasicKvIterHandle* iterHandle = CreateBasicKvIter(kvHandle);
     if (iterHandle == NULL) {

@@ -5,8 +5,8 @@
 Add a `rocksdb` dependency on `vcpkg.json` and recompile the project:
 
 ```sh
-cmake --preset=performance_profile
-cmake --build build/release -j `nproc`
+cmake --preset=performance
+cmake --build build/performance -j `nproc`
 ```
 
 ## Run

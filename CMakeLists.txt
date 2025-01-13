@@ -71,6 +71,7 @@ endif (CYGWIN)
 # ------------------------------------------------------------------------------
 
 find_package(tabulate CONFIG REQUIRED)
+find_package(gflags CONFIG REQUIRED)
 find_package(RapidJSON CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
 find_package(GTest CONFIG REQUIRED)

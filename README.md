@@ -2,6 +2,12 @@
 [![codecov][3]][4]
 [![Join Slack][11]][12]
 
+## 2025.1.12
+- benchmark会出现core
+- 虚拟机的配置要好才能做测试
+
+----
+
 # LeanStore
 
 LeanStore is a larger-than-memory database, optimized for NVMe SSD and

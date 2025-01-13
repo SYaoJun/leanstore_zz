@@ -66,6 +66,16 @@
                 "ENABLE_ROCKSDB": "ON",
                 "ENABLE_WIRED_TIGER": "ON"
             }
+        },
+        {
+            "name": "perf_debug",
+            "inherits": "base_debug",
+            "binaryDir": "${sourceDir}/build/perf_debug",
+            "cacheVariables": {
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/dist/perf_debug",
+                "ENABLE_ROCKSDB": "ON",
+                "ENABLE_WIRED_TIGER": "ON"
+            }
         }
     ]
 }
